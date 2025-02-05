@@ -1,80 +1,55 @@
 import { useReducer } from "react";
 import AddTask from "./AddTask.jsx";
 import TaskList from "./TaskList.jsx";
+import { TasksContext, TasksDispatchContext } from "./TaskContext.jsx";
 
 export default function TaskApp() {
-  const [tasks, dispatch] = useReducer(taskreducer, initialTasks);
-
-  function handleAddTask(text) {
-    dispatch({
-      type: "added",
-      id: nextId++,
-      text: text,
-    });
-  }
-
-  function handleChangeTask(task) {
-    dispatch({
-      type: "changed",
-      task: task,
-    });
-  }
-
-  function handleDeleteTask(taskId) {
-    dispatch({
-      type: "deleted",
-      id: taskId,
-    });
-  }
-
-  function taskreducer(tasks, action) {
-    switch (action.type) {
-      case "added": {
-        return [
-          ...tasks,
-          {
-            id: action.id,
-            text: action.text,
-            done: false,
-          },
-        ];
-      }
-
-      case "changed": {
-        return tasks.map((task) => {
-          if (task.id === action.task.id) {
-            return action.task;
-          } else {
-            return task;
-          }
-        });
-      }
-
-      case "deleted": {
-        return tasks.filter((task) => task.id !== action.id);
-      }
-      default: {
-        throw Error("Unknown Action" + action.type);
-      }
-    }
-  }
+  const [tasks, dispatch] = useReducer(tasksReducer, initialTasks);
 
   return (
-    <>
-      <h1>Prague itinerary</h1>
-      <AddTask onAddTask={handleAddTask} />
-      <TaskList
-        tasks={tasks}
-        onChangeTask={handleChangeTask}
-        onDeleteTask={handleDeleteTask}
-      />
-    </>
+    <TasksContext.Provider value={tasks}>
+      <TasksDispatchContext.Provider value={dispatch}>
+        <h1>Just Todo</h1>
+        <AddTask />
+        <TaskList />
+      </TasksDispatchContext.Provider>
+    </TasksContext.Provider>
   );
+}
+
+function tasksReducer(tasks, action) {
+  switch (action.type) {
+    case "added": {
+      return [
+        ...tasks,
+        {
+          id: action.id,
+          text: action.text,
+          done: false,
+        },
+      ];
+    }
+    case "changed": {
+      return tasks.map((t) => {
+        if (t.id === action.task.id) {
+          return action.task;
+        } else {
+          return t;
+        }
+      });
+    }
+    case "deleted": {
+      return tasks.filter((t) => t.id !== action.id);
+    }
+    default: {
+      throw Error("Unknown action: " + action.type);
+    }
+  }
 }
 
 let nextId = 3;
 const initialTasks = [
-  { id: 0, text: "Visit Kafka Museum", done: true },
-  { id: 1, text: "Watch a puppet show", done: false },
-  { id: 2, text: "Lennon Wall pic", done: false },
+  { id: 0, text: "Do My Homework", done: true },
+  { id: 1, text: "Brush my teeth", done: false },
+  { id: 2, text: "Be chill", done: false },
 ];

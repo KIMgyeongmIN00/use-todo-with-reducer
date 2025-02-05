@@ -1,59 +1,69 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { TasksContext, TasksDispatchContext } from "./TaskContext";
 
-export default function TaskList({ tasks, onChangeTask, onDeleteTask }) {
+export default function TaskList() {
+  const tasks = useContext(TasksContext);
   return (
     <ul>
       {tasks.map((task) => (
         <li key={task.id}>
-          <Task task={task} onChange={onChangeTask} onDelete={onDeleteTask} />
+          <Task task={task} />
         </li>
       ))}
     </ul>
   );
 }
 
-function Task({ task, onChange, onDelete }) {
+function Task({ task }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedText, setEditedText] = useState(task.text);
-
-  function handleSave() {
-    onChange({
-      ...task,
-      text: editedText,
-    });
-    setIsEditing(false);
+  const dispatch = useContext(TasksDispatchContext);
+  let taskContent;
+  if (isEditing) {
+    taskContent = (
+      <>
+        <input
+          value={task.text}
+          onChange={(e) => {
+            dispatch({
+              type: "changed",
+              task: { ...task, text: e.target.value },
+            });
+          }}
+        />
+        <button onClick={() => setIsEditing(false)}>Save</button>
+      </>
+    );
+  } else {
+    taskContent = (
+      <>
+        {task.text}
+        <button onClick={() => setIsEditing(true)}>Edit</button>
+      </>
+    );
   }
-
-  function handleCheckboxChange() {
-    onChange({
-      ...task,
-      done: !task.done,
-    });
-  }
-
   return (
-    <div>
+    <label>
       <input
         type="checkbox"
         checked={task.done}
-        onChange={handleCheckboxChange}
+        onChange={(e) => {
+          dispatch({
+            type: "changed",
+            task: { ...task, done: e.target.checked },
+          });
+        }}
       />
-      {isEditing ? (
-        <>
-          <input
-            type="text"
-            value={editedText}
-            onChange={(e) => setEditedText(e.target.value)}
-          />
-          <button onClick={handleSave}>Save</button>
-        </>
-      ) : (
-        <>
-          <span>{task.text}</span>
-          <button onClick={() => setIsEditing(true)}>Edit</button>
-        </>
-      )}
-      <button onClick={() => onDelete(task.id)}>Delete</button>
-    </div>
+      {taskContent}
+      <button
+        onClick={() =>
+          dispatch({
+            type: "deleted",
+            id: task.id,
+          })
+        }
+      >
+        Delete
+      </button>
+    </label>
   );
 }

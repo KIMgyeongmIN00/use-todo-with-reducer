@@ -1,23 +1,30 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { TasksDispatchContext } from "./TaskContext";
 
-export default function AddTask({ onAddTask }) {
+export default function AddTask() {
   const [text, setText] = useState("");
-
-  function handleAddTask() {
-    if (text.trim() === "") return; // 빈 문자열 추가 방지
-    onAddTask(text);
-    setText(""); // 입력 필드 초기화
-  }
-
+  const dispatch = useContext(TasksDispatchContext);
   return (
-    <div>
+    <>
       <input
-        type="text"
+        placeholder="Add task"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Add task"
       />
-      <button onClick={handleAddTask}>Add</button>
-    </div>
+      <button
+        onClick={() => {
+          setText("");
+          dispatch({
+            type: "added",
+            id: nextId++,
+            text: text,
+          });
+        }}
+      >
+        Add
+      </button>
+    </>
   );
 }
+
+let nextId = 3;
